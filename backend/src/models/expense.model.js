@@ -10,9 +10,9 @@ const expenseSchema = new mongoose.Schema(
         },
 
         amount : {
-            type : String,
+            type : Number,
             required : true,
-            min : 0          
+            min : 1          
         },
 
         date : {
@@ -20,5 +20,8 @@ const expenseSchema = new mongoose.Schema(
             required : true
         }
     },   
+    {
+        versionKey : false,
+    }
 )
 module.exports = mongoose.model("Expense",expenseSchema);
