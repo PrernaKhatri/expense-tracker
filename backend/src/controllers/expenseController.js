@@ -21,18 +21,14 @@ exports.getExpense = async(req,res) => {
     try{
         const {filter, month} = req.query;
 
-        if(!filter){
-            const expenses = await expense.find();
-            return response.success(res, "Expenses successfully fetched.", expenses);
-        }
-
+        
         if(filter === "today"){
             const start = new Date();
             start.setHours(0,0,0,0);
-
+            
             const end = new Date();
             end.setHours(23,59,59,999);
-
+            
             const todayExpenses = await expense.aggregate([
                 {$match : {date : {$gte : start, $lte : end}}},
                 {$group : {
@@ -44,16 +40,35 @@ exports.getExpense = async(req,res) => {
             if(todayExpenses.length === 0){
                 return response.error(res, 404, "No expenses for today.")
             }
-           
+            
             return response.success(res, "Today's expenses successfully calculated.", todayExpenses);
-
-        }
-
-        if(month){
-            const months = await expense.find(date.getMonth(month));
-            return response.success(res, "Expenses for the month are successfully calculated.", months);
         }
         
+        if(month){
+            
+            const allExp = await expense.find();
+            const filtered = allExp.filter(exp => {
+                const dt = new Date(exp.date);
+                return dt.getMonth() == (parseInt(month)-1)
+            });
+            
+            const total = filtered.reduce((sum,exp) => {
+                return sum + exp.amount;
+            },0);
+
+            if(total.length === 0){
+                return response.error(res, 404, "No expenses done.")
+            }
+            return response.success(res, "Monthly expenses calculated.", {
+                totalExp : total
+            })
+            
+        }
+        
+        if(!filter){
+            const expenses = await expense.find();
+            return response.success(res, "Expenses successfully fetched.", expenses);
+        }
     }
     catch(error){
         console.log(error.message);
