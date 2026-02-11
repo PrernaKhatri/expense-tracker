@@ -2,11 +2,11 @@
 Expense Tracker
 
 #Features
-See all expenses
-See today's expenses total amount
-See a particular month's expense
-Delete an expense
-Add an expense
+- See all expenses
+- See today's expenses total amount
+- See a particular month's expense
+- Delete an expense
+- Add an expense
 
 #Backend
 
