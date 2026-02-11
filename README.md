@@ -1,5 +1,5 @@
 #Project Name
-Expense Tracker
+- Expense Tracker
 
 #Features
 - See all expenses
@@ -11,16 +11,16 @@ Expense Tracker
 #Backend
 
 ##installation 
-move to cd backend then npm install
+- move to cd backend then npm install
 
 ###Run 
-npm run dev
+- npm run dev
 
 
 #frontend
 
 ##installation
-move to cd frontend then npm install
+- move to cd frontend then npm install
 
 ###Run
-npm start
+- npm start
