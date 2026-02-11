@@ -1,14 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Table, TableBody, TableCell, TableContainer, 
-  TableHead, TableRow, Paper, Typography, Button , Stack
+  TableHead, TableRow, Paper, Typography, Button , Stack, TextField
 } from '@mui/material';
 import axios from "axios";
+import {Routes, Route} from 'react-router-dom';
 import Header from './components/Header';
 import AddExpensePage  from './pages/AddExpensePage';
+import { useNavigate } from 'react-router-dom';
 
 function App() {
   const [expenses, setExpenses] = useState([]);
+  const navigate = useNavigate();
 
   useEffect(() => {fetchExpenses();}, []);
 
@@ -37,7 +40,7 @@ function App() {
       console.error(error);
       alert("failed to fetch total expense.")
     }
-  }
+  } 
 
   const monthlyExpense = async() => {
     try{
@@ -73,14 +76,24 @@ function App() {
 
 
   return (
-    
+
     <div align='center' >
+
+     
       {/* <Header/> */}
       <Stack direction="row" spacing={2} sx={{justifyContent: "space-between",maxWidth:1350}}>
-        <Button variant="contained" sx={{border: '2px solid black'}} >Add an expense</Button>
+        <Button variant="contained" sx={{border: '2px solid black'}} onClick= {()=> navigate('/AddExpense')} >Add an expense</Button>
         <Button variant="contained" sx={{border: '2px solid black'}} onClick={()=>{todayExpenses()}}>Know your today's expenses</Button>
+        
         <Button variant="contained" sx={{border: '2px solid black'}} onClick={()=>{monthlyExpense()}}>Know monthly expense</Button>
-        </Stack>
+        </Stack> <br/>
+
+        <Stack direction="row" spacing={1} sx={{justifyContent: "space-between",maxWidth:1350}}>
+        <TextField label="Title" variant="filled" sx={{border: '2px solid black'}}/>
+        <TextField label="Amount" variant="filled" sx={{border: '2px solid black'}}/>
+        <TextField label="Date" variant="filled" sx={{border : '2px solid black'}}/>
+        <Button variant="contained" onClick={()=>{alert('Expense submitted.')}} sx={{border: '2px solid black'}}>Submit</Button>
+        </Stack> <br/>
       
       <TableContainer component={Paper} >
         <Table sx={{ maxWidth:1350 }}>
