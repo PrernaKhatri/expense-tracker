@@ -67,6 +67,9 @@ exports.getExpense = async(req,res) => {
         
         if(!filter){
             const expenses = await expense.find();
+            if(expenses.length === 0){
+                return response.error(res, 404, "No expenses available.")
+            }
             return response.success(res, "Expenses successfully fetched.", expenses);
         }
     }
