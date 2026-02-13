@@ -13,7 +13,7 @@ const style = {
     p: 4,
   };
 
-const CustomModal = ({open, handleClose, title, content}) => {
+const CustomModal = ({open, handleClose, title, children}) => {
     return(
         <Modal open={open} onClose={handleClose}>
             <Box sx={style} >
@@ -25,9 +25,9 @@ const CustomModal = ({open, handleClose, title, content}) => {
                     {title}
                 </Typography>
 
-                <Typography sx={{ mt: 2 }}>
-                    {content}
-                </Typography>
+                <Box sx={{ mt: 2 }}>
+                {children}
+                </Box>
             
             </Box>
         </Modal>
