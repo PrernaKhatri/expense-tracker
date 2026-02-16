@@ -1,5 +1,5 @@
 import React from "react";
-import {Modal,Box, Typography, Button, IconButton} from "@mui/material";
+import {Modal,Box, Typography, IconButton} from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 
 const style = {
@@ -9,8 +9,14 @@ const style = {
     transform: 'translate(-50%, -50%)',
     width : 400,
     bgcolor: 'background.paper',
-    border: '2px solid black',
+    // border: '2px solid black',
     p: 4,
+    display : 'flex',
+    flexDirection: "column",
+    gap : 1,
+    textAlign : 'center'
+    // justifyContent : 'center',
+    // alignItems : 'center'
   };
 
 const CustomModal = ({open, handleClose, title, children}) => {
@@ -21,11 +27,11 @@ const CustomModal = ({open, handleClose, title, children}) => {
                     <CloseIcon/>
                 </IconButton>
                         
-                <Typography variant="h6" component="h2">
+                <Typography variant="h4" component="h2">
                     {title}
                 </Typography>
 
-                <Box sx={{ mt: 2 }}>
+                <Box>
                 {children}
                 </Box>
             
