@@ -3,12 +3,10 @@ import {
   Table, TableBody, TableCell, TableContainer,
   TableHead, TableRow, Paper, Typography, Button, Stack, TextField, IconButton, Box
 } from '@mui/material';
-import axios from "axios";
 import api from './config/api';
 
 import CustomModal from './components/CustomModal';
 import DeleteIcon from "@mui/icons-material/Delete";
-import SearchIcon from "@mui/icons-material/Search";
 import { DemoContainer } from '@mui/x-date-pickers/internals/demo';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -16,6 +14,7 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import Tooltip from '@mui/material/Tooltip';
 import { SnackbarProvider } from 'notistack';
 import { SnackBarConfigurator, toast } from './components/SnackBar';
+import dayjs from 'dayjs'; 
 
 function App() {
   const [expenses, setExpenses] = useState([]);
@@ -28,6 +27,8 @@ function App() {
   const [title, setTitle] = useState("");
   const [amount, setAmount] = useState("");
   const [date, setDate] = useState(null);
+  const [search, setSearch] = useState("");
+  const [searchDate, setSearchDate] = useState(null);
 
   const handleCloseModal = () => {
     setOpenModal(false);
@@ -40,20 +41,20 @@ function App() {
   useEffect(() => { fetchExpenses(); }, []);
 
   const fetchExpenses = async () => {
-    try { 
+    try {
       const res = await api.get("/expense")
       setExpenses(res.data.data || []);
     } catch (error) {
       console.log("Error fetching expenses", error);
       setExpenses([]);
     }
-  }; 
+  };
 
   const todayExpenses = async () => {
     setModelType("todayExpense");
     setModalTitle("Today's Expenses");
     setOpenModal(true);
-    try {    
+    try {
       const res = await api.get("/expense?filter=today")
       const { totalAmount } = res.data.data;
       setModalContent(`You have spent Rs. ${totalAmount} today.`);
@@ -73,7 +74,7 @@ function App() {
     setOpenModal(true);
     try {
       const month = selectedDate.month() + 1;
-      const year = selectedDate.year(); 
+      const year = selectedDate.year();
       const res = await api.get(`/expense?month=${month}&year=${year}`);
       const { totalAmount } = res.data.data;
       setModalContent(`You have spent Rs. ${totalAmount} for the selected month and year.`);
@@ -94,7 +95,7 @@ function App() {
   }
 
   const deleteExpense = async (id) => {
-    try {    
+    try {
       await api.delete(`/expense/${id}`);
       setExpenses(prev => prev.filter(exp => exp._id !== id));
       setOpenModal(false);
@@ -117,9 +118,10 @@ function App() {
         setModalContent("Please fill all the fields.");
         return;
       }
-      const expense = { title, amount, date: date.format("YYYY-MM-DD")};
-      const res = await api.post("/expense",expense);
+      const expense = { title, amount, date: date.format("YYYY-MM-DD") };
+      const res = await api.post("/expense", expense);
       setExpenses(prev => [...prev, res.data.data]);
+      await fetchExpenses();
       setOpenModal(false);
       toast.success("Expense added successfully.");
       setTitle("");
@@ -133,19 +135,55 @@ function App() {
     }
   }
 
+  const handleSearch = async (value) => {
+    try {
+      const res = await api.get(`/expense?search=${value}`);
+      setExpenses(res.data.data.expenses || res.data.data|| []);
+    }
+    catch (error) {
+      console.log("Error in fetching expenses.", error);
+      if (error.response && error.response.status === 404) {
+        setExpenses([]);
+      } else {
+        toast.error("Failed to fetch expenses.");
+      }
+    }
+  }
+
+  const handleDateSearch = async(newValue) => {
+    setSearchDate(newValue);
+      if(!newValue){
+        fetchExpenses();
+        return;
+      }
+    try{
+      const formattedDate = newValue.format("YYYY-MM-DD");
+      const res = await api.get(`/expense?date=${formattedDate}`);
+      setExpenses(res.data.data.expenses || res.data.data || []);
+    }
+    catch(error){
+      console.log("Error in fetching expenses.", error);
+      if (error.response && error.response.status === 404) {
+        setExpenses([]);
+      } else {
+        toast.error("Failed to fetch expenses.");
+      }
+    }
+  }
+
 
   return (
     <SnackbarProvider maxSnack={3} anchorOrigin={{ vertical: "bottom", horizontal: "center" }}>
       <SnackBarConfigurator />
       <Stack direction="column" spacing={3} sx={{ px: 5, py: 5, backgroundColor: "#c5c5c559", fontFamily: "Poppins" }}>
-       
+
         <Box >
           <Typography variant='h3' sx={{ fontFamily: "Poppins" }}>Hello, Prerna!</Typography>
           <Typography variant='h6' sx={{ fontFamily: "Poppins" }}>Track and manage your expenses easily with expense tracker.</Typography>
-        </Box>       
+        </Box>
         <Paper elevation={3} sx={{ px: 3, py: 3 }}>
-          <Box>        
-            <Stack direction="row" spacing={2} sx={{ justifyContent: "space-between" }}>      
+          <Box>
+            <Stack direction="row" spacing={2} sx={{ justifyContent: "space-between" }}>
               <Button variant='contained' sx={{ backgroundColor: "#e2e2e2", color: "black" }} onClick={() => { handleOpenAddModal() }} >Add an expense</Button>
               <Button variant="contained" sx={{ backgroundColor: "#e2e2e2", color: "black" }} onClick={() => { todayExpenses() }}>Know your today's expenses</Button>
               <Button variant="contained" sx={{ backgroundColor: "#e2e2e2", color: "black" }} onClick={() => { setModelType("monthlyExpense"); setOpenModal(true); }}>Know monthly expense</Button>
@@ -154,10 +192,31 @@ function App() {
         </Paper>
         <Paper elevation={3} sx={{ px: 3, py: 3 }}>
           <Box>
-            <Stack direction="row" spacing={2} >
-              {/* <Button variant='contained' type='submit' endIcon={<SearchIcon />}>Search by Title or Amount</Button>
-            <Button variant='contained' type='submit' endIcon={<SearchIcon />}>Search by Date</Button> */}
-              <TextField label="Search by Title or Amount"><SearchIcon /></TextField>
+            <Stack direction="row" spacing={2} alignItems={'center'}>
+              
+              <TextField label="Search by Title or Amount" value={search} 
+              onChange={(e) => {
+                const value = e.target.value;
+                setSearch(value); 
+                handleSearch(value)}}
+                 >
+                </TextField>
+              <LocalizationProvider dateAdapter={AdapterDayjs}>
+                <DemoContainer components={['DatePicker']} 
+                sx={{pt: 0}}>
+                  <DatePicker label="Search by Date"
+                    sx={{ width: '100%'}} value={searchDate}
+                    onChange={(newValue) => handleDateSearch(newValue)}
+                    format='DD-MM-YYYY' 
+                    disableFuture 
+                    slotProps={{
+                      actionBar: {
+                        actions: ['clear'],                    
+                      }
+                    }} 
+                    />
+                </DemoContainer>
+              </LocalizationProvider>
             </Stack>
             <TableContainer sx={{ maxHeight: 620 }}>
               <Table stickyHeader aria-label="sticky table" >
@@ -177,7 +236,7 @@ function App() {
                         <TableCell >{expense.title}</TableCell>
                         <TableCell >{expense.amount}</TableCell>
                         <TableCell >
-                          {expense.date ? new Date(expense.date).toLocaleDateString() : 'N/A'}
+                          {expense.date ? dayjs(expense.date).format('DD-MM-YYYY') : 'N/A'}
                         </TableCell>
                         <TableCell><Tooltip title="Delete">
                           <IconButton onClick={() => handleOpenDeleteModal(expense._id)}><DeleteIcon /></IconButton>
@@ -223,7 +282,11 @@ function App() {
                     <Typography align='center' variant='h5'>Add an expense</Typography>
                     <Typography sx={{ color: "red" }}>{modalContent}</Typography>
                     <Stack direction="column" spacing={1} >
-                      <TextField label="Title" value={title} onChange={(e) => setTitle(e.target.value)} />
+                      <TextField label="Title" value={title} 
+                      onChange={(e) => {const value = e.target.value;
+                              if (/^[A-Za-z\s]*$/.test(value)) {
+                              setTitle(value);
+                              }}} />
                       <TextField label="Amount" value={amount} onChange={(e) => setAmount(e.target.value)} />
                       <LocalizationProvider dateAdapter={AdapterDayjs} >
                         <DemoContainer components={['DatePicker']}>
